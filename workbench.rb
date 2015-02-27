@@ -53,19 +53,29 @@ class Workbench
 results = Result.all
 
 ary  = TkVariable.new_hash
-rows = 8
+puts "Results: #{results.length}"
+rows = results.length + 1
 cols = 8
-# fill table variable
-((-(rows))..rows).each{|x|
-  ((-(cols))..cols).each{|y|
-    ary[x,y] = "r#{x},c#{y}"
-  }
-}
+
+ary[0,0] = "Start Time"
+ary[0,1] = "Partner"
+ary[0,2] = "Project"
+ary[0,3] = "Status"
+
+row = 1
+results.each do |result|
+	ary[row,0] = result.startTime
+	ary[row,1] = result.partner
+	ary[row,2] = result.project
+	ary[row,3] = result.status
+	ary[row,3] = "result.status"
+	row = row + 1
+end
 
 table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
                         :width=>6, :height=>6,
-                        :titlerows=>1
-                        :roworigin=>-1, :colorigin=>-2,
+                        :titlerows=>1,
+                        :roworigin=>0, :colorigin=>0,
                         :rowstretchmode=>:last, :colstretchmode=>:last,
                         :rowtagcommand=>proc{|row|
                           row = Integer(row)
