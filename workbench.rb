@@ -1,5 +1,6 @@
 
 require 'tk'
+require 'tkextlib/tktable'
 require 'sqlite3'
 require 'sequel'
 
@@ -9,88 +10,163 @@ require './lib/job'
 require './lib/zuora_aqua'
 require './lib/query_runner'
 
-class EnvironmentFrame
-	def create(root)
-		frame = TkFrame.new(root) {
-			pack(:side => 'top')
-		}
-		TkLabel.new(frame) {
-			text "Select Environment:"
-			pack('padx' => 10, 'pady' => 10, :side => 'left')
-		}
+class Workbench
+	def run_job
+		# TODO: button should be disabled if nothing to run
+		# TODO: ensure names are unique
+		if @connection_var.value.empty? || @job_var.value.empty?
+			return
+		end
 
-		$config_selection = TkVariable.new
-		$config_combo = Tk::Tile::Combobox.new(frame) { 
-			textvariable $config_selection 
-			pack('padx' => 10, 'pady' => 10, :side => 'left')
-		}
-		update_config_menu
+		connection = Connection.where(:name => @connection_var.value).first
+		job = Job.where(:name => @job_var.value).first
+
+		run_query(connection, job)
+	end
+
+  	attr_reader :connection_combo
+  	attr_reader :job_combo
+
+	def initialize(frame)
+
+		connection_label =TkLabel.new(frame) {text "Select Connection:"}
+
+		@connection_var = TkVariable.new
+		@connection_combo = Tk::Tile::Combobox.new(frame, 'textvariable' => @connection_var)
+		@connection_combo.values = ['zoql', 'zoqlexport'] # TODO - get list of jobs
+		@connection_combo.state = 'readonly'
+
+		job_label =TkLabel.new(frame) {text "Select Job:"}
+
+		@job_var = TkVariable.new
+		@job_combo = Tk::Tile::Combobox.new(frame, 'textvariable' => @job_var)
+		@job_combo.values = ['zoql', 'zoqlexport'] # TODO - get list of jobs
+		@job_combo.state = 'readonly'
+		#job_combo.set(query.type)
+
+		run_button = TkButton.new(frame) { text "Run" }
+		run_button.command {run_job}
+
+		result_label =TkLabel.new(frame) {text "Results:"}
+		results_table = nil  # TODO: TkTable
+
+results = Result.all
+
+ary  = TkVariable.new_hash
+rows = 8
+cols = 8
+# fill table variable
+((-(rows))..rows).each{|x|
+  ((-(cols))..cols).each{|y|
+    ary[x,y] = "r#{x},c#{y}"
+  }
+}
+
+table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
+                        :width=>6, :height=>6,
+                        :titlerows=>1
+                        :roworigin=>-1, :colorigin=>-2,
+                        :rowstretchmode=>:last, :colstretchmode=>:last,
+                        :rowtagcommand=>proc{|row|
+                          row = Integer(row)
+                          (row>0 && row%2 == 1)? 'OddRow': ''
+                        },
+                        :coltagcommand=>proc{|col|
+                          col = Integer(col)
+                          (col>0 && col%2 == 1)? 'OddCol': ''
+                        },
+                        :selectmode=>:extended, :sparsearray=>false)
+
+
+
+		connection_label.grid :column => 0, :row => 0
+		@connection_combo.grid :column => 0, :row => 1
+		job_label.grid :column => 1, :row => 0
+		@job_combo.grid :column => 1, :row => 1
+		run_button.grid :column => 2, :row => 1
+		result_label.grid :column => 0, :row => 2
+		table.grid :column => 0, :row => 3, :columnspan => 3, :sticky => 'ewns'
 	end
 end
 
-def update_config_menu
-	aqua_configs = Connection.all
-	config_names = Array.new
-	aqua_configs.each { |c| 
-		config_names.push c.name
+class MenuBar
+	def construct_connections_menu(connection_hash)
+		win = @main_win
+
+		@connections_menu.delete(1, 'end')
+		@connections_menu.add :separator
+		connection_hash.each do |name, con|
+			@connections_menu.add :command, :label => name, :command => proc{ConnectionUI.new(con, win)}
+		end
+	end
+
+	def construct_jobs_menu(job_hash)
+		win = @main_win
+		@jobs_menu.delete(1, 'end')
+		@jobs_menu.add :separator
+		job_hash.each do |name, job|
+			@jobs_menu.add :command, :label => name, :command => proc{JobUI.new(job_hash[name], win)}
+		end
+	end
+
+	def initialize(win)
+		@main_win = win
+
+		menubar = TkMenu.new(win)
+		win['menu'] = menubar
+
+		@connections_menu = TkMenu.new(menubar)
+		@connections_menu.add :command, :label => 'New Connection...', :command => proc{ConnectionUI.new(nil, win)}
+
+		menubar.add :cascade, :menu => @connections_menu, :label => 'Connections'
+
+		@jobs_menu = TkMenu.new(menubar)
+		@jobs_menu.add :command, :label => 'New Job...', :command => proc{JobUI.new(nil, win)}
+
+		menubar.add :cascade, :menu => @jobs_menu, :label => 'Jobs'
+	end
+end
+
+def update_connection_references
+	connections = Connection.all
+	connection_arr = Array.new
+	connection_hash = {}
+	connections.each { |c| 
+		connection_arr.push c.name
+		connection_hash[c.name] = c
 	}
-	$config_combo.values = config_names
+
+	# Update Workbench
+	# TODO: the selected value may be empty or worse wrong
+	$workbench.connection_combo.values = connection_arr
+
+	# Update menus
+	$menus.construct_connections_menu(connection_hash)
 end
 
+def update_job_references
+	jobs = Job.all
+	jobs_arr = Array.new
+	job_hash = {}
+	jobs.each { |j| 
+		jobs_arr.push j.name
+		job_hash[j.name] = j
+	}
 
+	# Update Workbench
+	$workbench.job_combo.values = jobs_arr
 
-def create_menus(win)
-	menubar = TkMenu.new(win)
-	win['menu'] = menubar
-
-	file = TkMenu.new(menubar)
-	menubar.add :cascade, :menu => file, :label => 'Configure'
-
-	file.add :command, :label => 'New Connection...', :command => proc{newAquaConfig(win)}
-	file.add :command, :label => 'New Job...', :command => proc{JobUI.new(nil, win)}
+	# Update menus
+	$menus.construct_jobs_menu(job_hash)
 end
-
 
 root = TkRoot.new { title "AQuA Workbench" }
-create_menus(root)
 
-envf = EnvironmentFrame.new
-envf.create(root)
+$workbench = Workbench.new(root)
+$menus = MenuBar.new(root)
 
-TkLabel.new(root) do
-   text 'Query:'
-   pack { padx 15 ; pady 15; side 'top' }
-end
-
-$joblist = TkVariable.new
-
-def update_job_list
-	jobs = Job.all
-	tcl_str = ""
-	$job_name_arr = []
-	jobs.each do |job|
-		tcl_str << "{#{job.name}} "
-		$job_name_arr << job.name
-	end
-	$joblist.value = tcl_str
-end
-
-update_job_list
-$job_listbox = TkListbox.new(root) do
-	listvariable $joblist
-	pack { padx 15 ; pady 15; side 'top' }
-end
-$job_listbox.bind 'Double-1', proc{
-    idx = $job_listbox.curselection
-    if idx.length==1
-        idx = idx[0]    
-        #$job_listbox.see idx
-        puts $job_name_arr[idx]
-        job = Job.where(:name => $job_name_arr[idx]).first
-        puts "Obj: #{job.name}"
-        JobUI.new(job, root)
-    end
-}
+update_job_references
+update_connection_references
 
 Tk.mainloop
 

@@ -13,8 +13,8 @@ class AQuA
     self.class.basic_auth user, pass
   end
 
-  def batch_query(payload)
-    options = { :body => payload.to_json, :headers => { 'Content-Type' => 'application/json',  'Accept' => 'application/json'} }
+  def batch_query(json_payload)
+    options = { :body => json_payload, :headers => { 'Content-Type' => 'application/json',  'Accept' => 'application/json'} }
     self.class.post('/apps/api/batch-query/', options)
   end
 

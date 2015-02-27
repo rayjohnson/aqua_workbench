@@ -41,7 +41,41 @@ unless DB.table_exists? :queries
   end
 end
 
+unless DB.table_exists? :results
+  DB.create_table(:results) do
+  	primary_key :id
+  	String :name
+  	String :result_id
+  	String :partner
+    String :project
+    String :version
+    String :format
+    String :startTime   # TODO make DateTime
+    String :status
+    String :encrypted
+  end
+end
+
+unless DB.table_exists? :batches
+  DB.create_table(:batches) do
+  	primary_key :id
+  	String :name
+  	String :full
+  	String :message
+    String :query
+    String :status
+    String :recordCount
+    String :apiVersion
+    String :fileId
+    String :batchType
+    String :batchId
+
+    foreign_key :result_id, :results
+  end
+end
+
 Sequel::Model.plugin :json_serializer
+Sequel::Model.plugin :instance_hooks
 
 class Connection < Sequel::Model
 end
@@ -52,4 +86,12 @@ end
 
 class Query < Sequel::Model(:queries)
   many_to_one :jobs  
+end
+
+class Result < Sequel::Model
+  one_to_many :batches
+end
+
+class Batch < Sequel::Model(:batches)
+  many_to_one :results  
 end

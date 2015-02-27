@@ -10,51 +10,59 @@ class JobUI
 		job.encrypted = "none"
 		job.format = "csv"
 
-		query = Query.new
-		query.name = "My Query"
-		job.type = "zoqlexport"
-		job.apiVersion = "64.0"
-		job.add_query(query)
-
 		return job
 	end
 
-	def run_job(job, t)
-		# TODO: Save first?
-		run_query(job)
+	def delete_job(job, t)
+		job.queries.each do |q|
+			q.delete
+		end
+		job.delete
+		t.destroy
+		update_job_references
 	end
 
 	def save_job(job, t)
-		job.name = @name_entry.value
+		job.name = @name_entry.value.strip
 		job.format = @format_entry.value
 		job.version = @version_entry.value
 		job.encrypted = @encrypted_entry.value
-		job.partner = @partner_entry.value
-		job.project = @project_entry.value
+		job.partner = @partner_entry.value.strip
+		job.project = @project_entry.value.strip
+
+		if job.partner == ""
+			job.partner = nil
+		end
+		if job.project == ""
+			job.project = nil
+		end
+		job.save
 
 		@query_editors.each do |qe|
-			qe.save_query
+			qe.save_query(job)
 		end
 
-		job.save
 		t.destroy
-		update_job_list
+		update_job_references
 	end
 
 	def build_query_editors(job)
 		query_editors = []
 
-		parent = @query_frame
-		job.queries.each do |query|
-			f = TkFrame.new(parent)
+		if job.queries.length == 0
+			# If we have none - create a frame and pass nil to get em started
+			queries = [nil]
+		else
+			queries = job.queries
+		end
+		queries.each do |query|
+			f = TkFrame.new(@query_frame)
 
 			f.grid :column => 0, :sticky => 'ew'
-			TkGrid.columnconfigure( @query_frame, 0, :weight => 1 )
-
 			query_editors << QueryUI.new(query, f)
 		end
 		
-		#TkGrid.columnconfigure( parent, 0, :weight => 1 )
+		TkGrid.columnconfigure( @query_frame, 0, :weight => 1 )
 
 		return query_editors
 	end
@@ -97,11 +105,11 @@ class JobUI
 		@query_editors = build_query_editors(job)
 
 		f = TkFrame.new(t)
-		run = TkButton.new(f) {
-			text "Save & Run"
+		delete = TkButton.new(f) {
+			text "Delete"
 			pack('padx' => 10, 'pady' => 10, :side => 'right')
 		}
-		run.command {run_job(job, t)}
+		delete.command {delete_job(job, t)}
 
 		save = TkButton.new(f) {
 			text "Save & Close"
@@ -113,7 +121,9 @@ class JobUI
 			text "Cancel"
 			command proc{t.destroy}
 			pack('padx' => 10, 'pady' => 10, :side => 'right')
-		} 
+		}
+
+		# TODO: Add Query button to add a new query
 
 		name_label.grid :column => 0, :row => 0
 		@name_entry.grid :column => 1, :row => 0, :sticky => 'ew'
@@ -140,14 +150,25 @@ class JobUI
 end
 
 class QueryUI
-	def save_query
+	def save_query(job)
 		@query.name = @name_var.value
 		@query.type = @type_var.value
 		@query.query = @query_text.get("1.0", 'end').strip
+
+		if @new_query
+			job.add_query(@query)
+		end
 		@query.save
 	end
 
 	def initialize(query, f)
+			if query.nil?
+				query = Query.new
+				query.name = "New query"
+				query.type = "zoqlexport"
+				query.apiVersion = "64.0"
+				@new_query = true
+			end
 			@query = query
 
 			name_label = TkLabel.new(f) {text "Query Name:"}
