@@ -43,3 +43,13 @@ def run_query(connection, job)
   result.result_id = job_id
   result.save
 end
+
+def check_results
+  results = Result.all?
+  results.each do |r|
+    r.job_id
+
+    # TODO: - hmm - I'll need reference to the connection to check results
+    # query_job_result
+  end
+end

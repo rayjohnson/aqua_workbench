@@ -53,6 +53,8 @@ unless DB.table_exists? :results
     String :startTime   # TODO make DateTime
     String :status
     String :encrypted
+
+    foreign_key :connection_id, :connections
   end
 end
 
@@ -78,6 +80,7 @@ Sequel::Model.plugin :json_serializer
 Sequel::Model.plugin :instance_hooks
 
 class Connection < Sequel::Model
+  one_to_many :results
 end
 
 class Job < Sequel::Model
@@ -90,6 +93,7 @@ end
 
 class Result < Sequel::Model
   one_to_many :batches
+  manhy_to_one :connections
 end
 
 class Batch < Sequel::Model(:batches)

@@ -95,7 +95,9 @@ table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
 		@job_combo.grid :column => 1, :row => 1
 		run_button.grid :column => 2, :row => 1
 		result_label.grid :column => 0, :row => 2
-		table.grid :column => 0, :row => 3, :columnspan => 3, :sticky => 'ewns'
+		table.grid :column => 0, :row => 3, :columnspan => 4, :sticky => 'ewns'
+
+		TkGrid.columnconfigure( frame, 4, :weight => 1 )
 	end
 end
 
