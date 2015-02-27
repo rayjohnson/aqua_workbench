@@ -34,17 +34,22 @@ unless DB.table_exists? :queries
   	primary_key :id
   	String :name
   	String :type
-  	String :query_text
+  	String :query
+    String :apiVersion
   	# deleted field - TODO
+    foreign_key :job_id, :jobs
   end
 end
 
+Sequel::Model.plugin :json_serializer
 
 class Connection < Sequel::Model
 end
 
 class Job < Sequel::Model
+  one_to_many :queries
 end
 
 class Query < Sequel::Model(:queries)
+  many_to_one :jobs  
 end

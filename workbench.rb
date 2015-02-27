@@ -6,6 +6,8 @@ require 'sequel'
 require './lib/db'
 require './lib/connection'
 require './lib/job'
+require './lib/zuora_aqua'
+require './lib/query_runner'
 
 class EnvironmentFrame
 	def create(root)
@@ -30,7 +32,7 @@ def update_config_menu
 	aqua_configs = Connection.all
 	config_names = Array.new
 	aqua_configs.each { |c| 
-		config_names.push c.config_name
+		config_names.push c.name
 	}
 	$config_combo.values = config_names
 end
