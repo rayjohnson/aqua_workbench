@@ -93,7 +93,7 @@ end
 
 class Result < Sequel::Model
   one_to_many :batches
-  manhy_to_one :connections
+  many_to_one :connections
 end
 
 class Batch < Sequel::Model(:batches)

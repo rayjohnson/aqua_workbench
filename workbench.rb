@@ -6,6 +6,7 @@ require 'sequel'
 
 require './lib/db'
 require './lib/connection'
+require './lib/menus'
 require './lib/job'
 require './lib/zuora_aqua'
 require './lib/query_runner'
@@ -26,6 +27,8 @@ class Workbench
 
   	attr_reader :connection_combo
   	attr_reader :job_combo
+    attr_accessor :connection_var
+    attr_accessor :job_var
 
 	def initialize(frame)
 
@@ -71,12 +74,14 @@ results.each do |result|
 	ary[row,3] = "result.status"
 	row = row + 1
 end
+if rows < 6
+  rows = 6
+end
 
 table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
                         :width=>6, :height=>6,
                         :titlerows=>1,
                         :roworigin=>0, :colorigin=>0,
-                        :rowstretchmode=>:last, :colstretchmode=>:last,
                         :rowtagcommand=>proc{|row|
                           row = Integer(row)
                           (row>0 && row%2 == 1)? 'OddRow': ''
@@ -86,6 +91,8 @@ table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
                           (col>0 && col%2 == 1)? 'OddCol': ''
                         },
                         :selectmode=>:extended, :sparsearray=>false)
+ sx = table.xscrollbar(TkScrollbar.new)
+ sy = table.yscrollbar(TkScrollbar.new)
 
 
 
@@ -95,51 +102,17 @@ table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
 		@job_combo.grid :column => 1, :row => 1
 		run_button.grid :column => 2, :row => 1
 		result_label.grid :column => 0, :row => 2
-		table.grid :column => 0, :row => 3, :columnspan => 4, :sticky => 'ewns'
+
+    table.grid :column => 0, :row => 3, :columnspan => 4, :sticky => 'ewns'
+    sy.grid :column => 5, :row => 3, :sticky => 'ewns'
+    sx.grid :column => 0, :row => 4, :columnspan => 4, :sticky => 'ewns'
 
 		TkGrid.columnconfigure( frame, 4, :weight => 1 )
 	end
 end
 
-class MenuBar
-	def construct_connections_menu(connection_hash)
-		win = @main_win
 
-		@connections_menu.delete(1, 'end')
-		@connections_menu.add :separator
-		connection_hash.each do |name, con|
-			@connections_menu.add :command, :label => name, :command => proc{ConnectionUI.new(con, win)}
-		end
-	end
-
-	def construct_jobs_menu(job_hash)
-		win = @main_win
-		@jobs_menu.delete(1, 'end')
-		@jobs_menu.add :separator
-		job_hash.each do |name, job|
-			@jobs_menu.add :command, :label => name, :command => proc{JobUI.new(job_hash[name], win)}
-		end
-	end
-
-	def initialize(win)
-		@main_win = win
-
-		menubar = TkMenu.new(win)
-		win['menu'] = menubar
-
-		@connections_menu = TkMenu.new(menubar)
-		@connections_menu.add :command, :label => 'New Connection...', :command => proc{ConnectionUI.new(nil, win)}
-
-		menubar.add :cascade, :menu => @connections_menu, :label => 'Connections'
-
-		@jobs_menu = TkMenu.new(menubar)
-		@jobs_menu.add :command, :label => 'New Job...', :command => proc{JobUI.new(nil, win)}
-
-		menubar.add :cascade, :menu => @jobs_menu, :label => 'Jobs'
-	end
-end
-
-def update_connection_references
+def update_connection_references(selected = nil)
 	connections = Connection.all
 	connection_arr = Array.new
 	connection_hash = {}
@@ -151,12 +124,15 @@ def update_connection_references
 	# Update Workbench
 	# TODO: the selected value may be empty or worse wrong
 	$workbench.connection_combo.values = connection_arr
+  if ! selected.nil?
+    $workbench.connection_var = selected.name
+  end
 
 	# Update menus
 	$menus.construct_connections_menu(connection_hash)
 end
 
-def update_job_references
+def update_job_references(selected = nil)
 	jobs = Job.all
 	jobs_arr = Array.new
 	job_hash = {}
@@ -167,6 +143,10 @@ def update_job_references
 
 	# Update Workbench
 	$workbench.job_combo.values = jobs_arr
+  if ! selected.nil?
+    # TODO: debug - this did not select this
+    $workbench.job_var = selected.name
+  end
 
 	# Update menus
 	$menus.construct_jobs_menu(job_hash)
