@@ -101,3 +101,44 @@ def check_results
     update_results_table
   end
 end
+
+def download_query_results(batch)
+  result = Result.where(:id=>batch.result_id).first
+  connection = Connection.where(:id=>result.connection_id).first
+
+  #get_csv_file(batch.fileId)
+  if connection.environment == "prod"
+    url = "https://www.zuora.com/apps/api/file/#{batch.fileId}"
+  else
+    url = "https://apisandbox.zuora.com/apps/api/file/#{batch.fileId}"
+  end
+  puts "URL: #{url}"
+  uri = URI(url)
+
+  # TODO: option to store in different place than Downloads
+  save_path = "#{Dir.home}/Downloads/#{batch.name}.#{result.format}"
+  puts "Save here: #{save_path}"
+
+  # TODO: Content type in header?
+  http = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = true
+  http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+  #http.set_debug_output($stdout)
+
+  request = Net::HTTP::Get.new uri.request_uri
+  request.basic_auth(connection.username, connection.password)
+  request["User-Agent"] = "AQuA Workbench"
+  request["Accept"] = "application/csv"
+
+  http.request request do |response|
+    #puts "Got here"
+    open save_path, 'w' do |io|
+      response.read_body do |chunk|
+        io.write chunk
+      end
+    end
+  end
+end
+
+
+

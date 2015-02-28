@@ -53,17 +53,12 @@ class ResultUI
       row = 1
       result.batches.each do |batch|
         # Name provide link to query?, message?, full?, etc
-        puts "Name #{batch.name}"
-        puts "Type #{batch.batchType}"
-        puts "Rows #{batch.recordCount}"
-        puts "Status #{batch.status}"
-        puts "Download: #{batch.fileId}"
         a[row,0] = batch.name
         a[row,1] = batch.batchType
         a[row,2] = batch.recordCount
         a[row,3] = batch.status
         a[row,4] = "Download"
-        a[row,5] = batch.fileId
+        a[row,5] = batch.id
         row = row + 1
       end
       table.variable(@batch_array)
@@ -101,7 +96,10 @@ class ResultUI
 
       id = @batch_array[row, 5]
       puts "ID: #{id}"
+      batch = Batch.where(:id => id).first
 
+      download_query_results(batch)
+      return
       # Go do the rest stuff
       # TODO: got get file
       # choose location or Downloads file, or what?
