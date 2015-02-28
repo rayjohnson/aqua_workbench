@@ -1,6 +1,33 @@
 
 require 'json'
 
+def show_bad_request_message(code)
+  if code == 401
+    # TODO: is there more control we can have on UI on Mac (not show feather?)
+    msgBox = Tk.messageBox(
+      'type'    => "ok",  
+      'icon'    => "info", 
+      'title'   => "Invalid credentials",
+      'message' => "You were not able to authenticate to Zuora with provided credentials.  Http code: #{code}"
+    )
+  else
+    msgBox = Tk.messageBox(
+      'type'    => "ok",  
+      'icon'    => "info", 
+      'title'   => "Communication error",
+      'message' => "Could not communicate with Zuora.  Http code: #{code}"
+    )
+  end
+end
+
+def show_zuora_error_message(errorCode, message)
+    msgBox = Tk.messageBox(
+      'type'    => "ok",  
+      'icon'    => "info", 
+      'title'   => "Zuora Error",
+      'message' => "#{message} (errorCode: #{errorCode})"
+    )
+end
 
 def run_query(connection, job)
   puts "hello"
@@ -14,23 +41,35 @@ def run_query(connection, job)
   aqua = AQuA.new(connection.username, connection.password)
   puts "about to do it"
 
-  result = aqua.batch_query(request)
+  response = aqua.batch_query(request)
   # TODO: look for errors
-  puts result
-  job_id = result.parsed_response["id"]
-  puts job_id
+  puts response
+  puts "Code: #{response.code}"
+  if response.code != 200
+    show_bad_request_message(response.code)
+    return
+  end
+  job_id = response.parsed_response["id"]
+  if job_id.nil?
+    show_zuora_error_message(response.parsed_response["errorCode"], response.parsed_response["message"])
+    return
+  end
 
   # Save the ID so it can show up in result screen
   result = Result.new
   result.result_id = job_id
+  result.name = job.name
   connection.add_result(result)
   result.save
+
+  # Now go check results
+  check_results
 end
 
 def check_results
   results = Result.all
   results.each do |r|
-    if r.status == "completed"
+    if r.status == "completed" || r.result_id.nil?
       next
     end
 
@@ -57,5 +96,8 @@ def check_results
       r.add_batch(batch)
       batch.save
     end
+
+    # Now go update UI
+    update_results_table
   end
 end

@@ -7,6 +7,7 @@ require 'sequel'
 require './lib/db'
 require './lib/connection'
 require './lib/menus'
+require './lib/result'
 require './lib/job'
 require './lib/zuora_aqua'
 require './lib/query_runner'
@@ -50,43 +51,21 @@ class Workbench
 		run_button = TkButton.new(frame) { text "Run" }
 		run_button.command {run_job}
 
-		result_label =TkLabel.new(frame) {text "Results:"}
-		results_table = nil  # TODO: TkTable
-
-    refresh_button = TkButton.new(frame) { text "Refresh" }
-    refresh_button.command {check_results}
-
-
-results = Result.all
-
-ary  = TkVariable.new_hash
-puts "Results: #{results.length}"
-rows = results.length + 1
-cols = 5
-
-ary[0,0] = "Start Time"
-ary[0,1] = "Partner"
-ary[0,2] = "Project"
-ary[0,3] = "Status"
-ary[0,4] = "FileId"
-
-row = 1
-results.each do |result|
-	ary[row,0] = result.startTime
-	ary[row,1] = result.partner
-	ary[row,2] = result.project
-	ary[row,3] = result.status
-	#ary[row,4] = result.fileId
-	row = row + 1
-end
-if rows < 6
-  rows = 6
-end
+		refresh_frame = TkFrame.new(frame)
+		result_label =TkLabel.new(refresh_frame) {text "Results:" }
+		result_label.pack(:side => 'left')
+    	refresh_button = TkButton.new(refresh_frame) { text "Refresh" }
+    	refresh_button.command {check_results}
+		refresh_button.pack(:side => 'right')
 
 #TODO: make hyper link - font with underline perhaps, code for double click?
-# remove focus ring
-table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
-                        :width=>6, :height=>6,
+# pathName tag configure -font
+#courier = TkFont.new(:family=>'Courier', :size=>10)
+#table.tag_configure('s', :font=>courier, :justify=>:center)
+
+		@results_array  = TkVariable.new_hash
+		@table = Tk::TkTable.new(:cols=>6,
+                        :width=>56, :height=>6,
                         :titlerows=>1,
                         :roworigin=>0, :colorigin=>0,
                         :rowtagcommand=>proc{|row|
@@ -96,28 +75,83 @@ table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
                         :selectmode=>:extended,
                         :colstretchmode=>:all,
                         :state=>:disabled,
+                        :bd=>1, :highlightthickness=>0,
                         :selecttype => :row)
- sx = table.xscrollbar(TkScrollbar.new)
- sy = table.yscrollbar(TkScrollbar.new)
+		sx = @table.xscrollbar(TkScrollbar.new)
+		sy = @table.yscrollbar(TkScrollbar.new)
+		@table.tag_configure('link', :fg=>'blue')
+		@table.tag_col('link', "5")
+		@table.variable(@results_array)
+		update_results_table
 
-
+		@table.bind('Double-Button-1', proc{|w, x, y|
+             table_click(w, x, y)
+             }, '%W %x %y')
 
 		connection_label.grid :column => 0, :row => 0
 		@connection_combo.grid :column => 0, :row => 1
 		job_label.grid :column => 1, :row => 0
 		@job_combo.grid :column => 1, :row => 1
 		run_button.grid :column => 2, :row => 1
-		result_label.grid :column => 0, :row => 2
-    refresh_button.grid :column => 4, :row => 2
+		refresh_frame.grid :column => 0, :row => 2, :columnspan => 5
 
-    table.grid :column => 0, :row => 3, :columnspan => 5, :sticky => 'ewns'
-    sy.grid :column => 5, :row => 3, :sticky => 'ewns'
-    sx.grid :column => 0, :row => 4, :columnspan => 4, :sticky => 'ewns'
+	    @table.grid :column => 0, :row => 3, :columnspan => 5, :sticky => 'ewns'
+	    sy.grid :column => 5, :row => 3, :sticky => 'ewns'
+	    sx.grid :column => 0, :row => 4, :columnspan => 5, :sticky => 'ewns'
 
 		TkGrid.columnconfigure( frame, 4, :weight => 1 )
 	end
+
+	def table_click(w, x, y)
+    	rc = w.index(TkComm._at(x,y))
+    	row = rc.split(",")[0]
+
+    	#puts "Mouseer: #{rc}"
+    	#name = @results_array[row, 0]
+    	#puts "Job Name: #{name}"
+    	id = @results_array[row, 6]
+    	puts "ID: #{id}"
+
+    	result = Result.where(:id=>id).first
+    	puts "Name #{result.name}"
+    	ResultUI.new(result, $root)
+	end
 end
 
+
+def update_results_table
+	results = Result.all
+	ary = @results_array
+
+	puts "Results: #{results.length}"
+	rows = results.length + 1
+	cols = 5
+
+	ary[0,0] = "Job Name"
+	ary[0,1] = "Connection"
+	ary[0,2] = "Start Time"
+	ary[0,3] = "Partner"
+	ary[0,4] = "Project"
+	ary[0,5] = "Status"
+
+	row = 1
+	results.each do |result|
+		ary[row,0] = result.name
+		ary[row,1] = Connection.where(:id=>result.connection_id).first.name
+		ary[row,2] = result.startTime
+		ary[row,3] = result.partner
+		ary[row,4] = result.project
+		ary[row,5] = result.status
+		ary[row,6] = result.id
+		row = row + 1
+	end
+	if rows < 6
+	  rows = 6
+	end
+
+	# TODO: should I sent numb of columns?
+	#@table
+end
 
 def update_connection_references(selected = nil)
 	connections = Connection.all
@@ -159,10 +193,10 @@ def update_job_references(selected = nil)
 	$menus.construct_jobs_menu(job_hash)
 end
 
-root = TkRoot.new { title "AQuA Workbench" }
+$root = TkRoot.new { title "AQuA Workbench" }
 
-$workbench = Workbench.new(root)
-$menus = MenuBar.new(root)
+$workbench = Workbench.new($root)
+$menus = MenuBar.new($root)
 
 update_job_references
 update_connection_references
