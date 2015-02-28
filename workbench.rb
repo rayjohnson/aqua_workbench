@@ -53,17 +53,22 @@ class Workbench
 		result_label =TkLabel.new(frame) {text "Results:"}
 		results_table = nil  # TODO: TkTable
 
+    refresh_button = TkButton.new(frame) { text "Refresh" }
+    refresh_button.command {check_results}
+
+
 results = Result.all
 
 ary  = TkVariable.new_hash
 puts "Results: #{results.length}"
 rows = results.length + 1
-cols = 8
+cols = 5
 
 ary[0,0] = "Start Time"
 ary[0,1] = "Partner"
 ary[0,2] = "Project"
 ary[0,3] = "Status"
+ary[0,4] = "FileId"
 
 row = 1
 results.each do |result|
@@ -71,13 +76,15 @@ results.each do |result|
 	ary[row,1] = result.partner
 	ary[row,2] = result.project
 	ary[row,3] = result.status
-	ary[row,3] = "result.status"
+	#ary[row,4] = result.fileId
 	row = row + 1
 end
 if rows < 6
   rows = 6
 end
 
+#TODO: make hyper link - font with underline perhaps, code for double click?
+# remove focus ring
 table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
                         :width=>6, :height=>6,
                         :titlerows=>1,
@@ -86,11 +93,10 @@ table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
                           row = Integer(row)
                           (row>0 && row%2 == 1)? 'OddRow': ''
                         },
-                        :coltagcommand=>proc{|col|
-                          col = Integer(col)
-                          (col>0 && col%2 == 1)? 'OddCol': ''
-                        },
-                        :selectmode=>:extended, :sparsearray=>false)
+                        :selectmode=>:extended,
+                        :colstretchmode=>:all,
+                        :state=>:disabled,
+                        :selecttype => :row)
  sx = table.xscrollbar(TkScrollbar.new)
  sy = table.yscrollbar(TkScrollbar.new)
 
@@ -102,8 +108,9 @@ table = Tk::TkTable.new(:rows=>rows, :cols=>cols, :variable=>ary,
 		@job_combo.grid :column => 1, :row => 1
 		run_button.grid :column => 2, :row => 1
 		result_label.grid :column => 0, :row => 2
+    refresh_button.grid :column => 4, :row => 2
 
-    table.grid :column => 0, :row => 3, :columnspan => 4, :sticky => 'ewns'
+    table.grid :column => 0, :row => 3, :columnspan => 5, :sticky => 'ewns'
     sy.grid :column => 5, :row => 3, :sticky => 'ewns'
     sx.grid :column => 0, :row => 4, :columnspan => 4, :sticky => 'ewns'
 
