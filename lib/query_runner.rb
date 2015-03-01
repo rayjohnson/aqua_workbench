@@ -91,10 +91,20 @@ def check_results
     r.status = response["status"]
     r.save
 
-    response["batches"].each do |batch_hash|
-      batch = Batch.new(batch_hash)
-      r.add_batch(batch)
-      batch.save
+    if r.batches.length > 0
+      # Just update batch results
+      response["batches"].each do |batch_hash|
+        batch = Batch.where(:batchId=>batch_hash["batchId"]).first
+        batch.update(batch_hash)
+        batch.save
+      end
+    else
+      # Must be new
+      response["batches"].each do |batch_hash|
+        batch = Batch.new(batch_hash)
+        r.add_batch(batch)
+        batch.save
+      end
     end
 
     # Now go update UI
