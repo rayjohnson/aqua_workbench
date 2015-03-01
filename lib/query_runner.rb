@@ -91,6 +91,11 @@ def check_results
     r.status = response["status"]
     r.save
 
+    jobs_still_running = false
+    if response["status"] == "executing" || response["status"] == "pending"
+      jobs_still_running = true
+    end
+     
     if r.batches.length > 0
       # Just update batch results
       response["batches"].each do |batch_hash|
@@ -109,6 +114,11 @@ def check_results
 
     # Now go update UI
     update_results_table
+    if jobs_still_running
+      Tk.after(500) {
+        check_results
+      }
+    end
   end
 end
 

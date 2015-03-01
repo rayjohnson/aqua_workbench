@@ -16,7 +16,7 @@ class MenuBar
     win = @main_win
     @jobs_menu.delete(1, 'end')
 
-    if job_hash.length > 1
+    if job_hash.length > 0
       @jobs_menu.add :separator
     end
     job_hash.each do |name, job|

@@ -51,21 +51,26 @@ class JobUI
 
 		if job.queries.length == 0
 			# If we have none - create a frame and pass nil to get em started
-			queries = [nil]
+			add_query_editor(nil)
 		else
-			queries = job.queries
-		end
-		queries.each do |query|
-			f = TkFrame.new(@query_frame)
-
-			f.grid :column => 0, :sticky => 'ew'
-			query_editors << QueryUI.new(query, f)
+			job.queries.each do |query|
+				add_query_editor(query)
+			end
 		end
 		
 		TkGrid.columnconfigure( @query_frame, 0, :weight => 1 )
 
 		return query_editors
 	end
+
+	def add_query_editor(query)
+		f = TkFrame.new(@query_frame)
+
+		f.grid :column => 0, :sticky => 'ew'
+		@query_editors << QueryUI.new(self, query, f)
+	end
+
+	attr_accessor :query_editors
 
 	def initialize(job, parent)
 
@@ -102,7 +107,8 @@ class JobUI
 		@project_entry.insert(0, job.project)
 
 		@query_frame = TkFrame.new(t)
-		@query_editors = build_query_editors(job)
+		@query_editors = []
+		build_query_editors(job)
 
 		f = TkFrame.new(t)
 		delete = TkButton.new(f) {
@@ -123,7 +129,11 @@ class JobUI
 			pack('padx' => 10, 'pady' => 10, :side => 'right')
 		}
 
-		# TODO: Add Query button to add a new query
+		addQuery = TkButton.new(f) {
+			text "Add Query"
+			pack('padx' => 10, 'pady' => 10, :side => 'right')
+		}
+		addQuery.command { add_query_editor(nil) }
 
 		name_label.grid :column => 0, :row => 0
 		@name_entry.grid :column => 1, :row => 0, :sticky => 'ew'
@@ -139,60 +149,11 @@ class JobUI
 		@project_entry.grid :column => 1, :row => 5, :sticky => 'ew'
 
 		@query_frame.grid :column => 0, :row => 6, :columnspan => 2, :sticky => 'ew'
-		@query_frame.background = 'yellow'
 
 		f.grid :column => 0, :row => 7, :columnspan => 2, :sticky => 'e'
 
 		TkGrid.columnconfigure( t, 1, :weight => 1 )
 
 		@win = t
-	end
-end
-
-class QueryUI
-	def save_query(job)
-		@query.name = @name_var.value
-		@query.type = @type_var.value
-		@query.query = @query_text.get("1.0", 'end').strip
-
-		if @new_query
-			job.add_query(@query)
-		end
-		@query.save
-	end
-
-	def initialize(query, f)
-			if query.nil?
-				query = Query.new
-				query.name = "New query"
-				query.type = "zoqlexport"
-				query.apiVersion = "64.0"
-				@new_query = true
-			end
-			@query = query
-
-			name_label = TkLabel.new(f) {text "Query Name:"}
-			@name_var = TkVariable.new
-			@name_var.value = query.name
-			name_entry = TkEntry.new(f, 'textvariable' => @name_var)
-
-			type_label = TkLabel.new(f) {text "Type:"}
-			@type_var = TkVariable.new
-			type_combo = Tk::Tile::Combobox.new(f, 'textvariable' => @type_var)
-			type_combo.values = ['zoql', 'zoqlexport']
-			type_combo.state = 'readonly'
-			type_combo.set(query.type)
-
-			@query_text = TkText.new(f) {height 4}
-			@query_text.insert(1.0, query.query)
-			@query_text.wrap = 'word'
-
-			name_label.grid :column => 0, :row => 0
-			name_entry.grid :column => 1, :row => 0, :sticky => 'ew'
-			type_label.grid :column => 2, :row => 0
-			type_combo.grid :column => 3, :row => 0
-			@query_text.grid :column => 0, :row => 1, :columnspan => 5, :sticky => 'ew'
-
-			TkGrid.columnconfigure( f, 4, :weight => 1 )
 	end
 end
