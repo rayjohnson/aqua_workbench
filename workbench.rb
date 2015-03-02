@@ -38,14 +38,12 @@ class Workbench
 
 		@connection_var = TkVariable.new
 		@connection_combo = Tk::Tile::Combobox.new(frame, 'textvariable' => @connection_var)
-		@connection_combo.values = ['zoql', 'zoqlexport'] # TODO - get list of jobs
 		@connection_combo.state = 'readonly'
 
 		job_label =TkLabel.new(frame) {text "Select Job:"}
 
 		@job_var = TkVariable.new
 		@job_combo = Tk::Tile::Combobox.new(frame, 'textvariable' => @job_var)
-		@job_combo.values = ['zoql', 'zoqlexport'] # TODO - get list of jobs
 		@job_combo.state = 'readonly'
 		#job_combo.set(query.type)
 
@@ -162,13 +160,17 @@ def update_connection_references(selected = nil)
 		connection_arr.push c.name
 		connection_hash[c.name] = c
 	}
-
-	# Update Workbench
-	# TODO: the selected value may be empty or worse wrong
 	$workbench.connection_combo.values = connection_arr
-  if ! selected.nil?
-    $workbench.connection_var = selected.name
-  end
+
+	# Update selected value to the new one if given
+	if ! selected.nil?
+	  	$workbench.connection_combo.set selected.name
+	end
+
+	# If nothing is selected let's select something
+	if $workbench.connection_combo.current == -1 && connection_arr.length > 0
+		$workbench.connection_combo.current = 0
+	end
 
 	# Update menus
 	$menus.construct_connections_menu(connection_hash)
@@ -182,13 +184,17 @@ def update_job_references(selected = nil)
 		jobs_arr.push j.name
 		job_hash[j.name] = j
 	}
-
-	# Update Workbench
 	$workbench.job_combo.values = jobs_arr
-  if ! selected.nil?
-    # TODO: debug - this did not select this
-    $workbench.job_var = selected.name
-  end
+
+	# Update selected with new one
+	if ! selected.nil?
+	    $workbench.job_combo.set selected.name
+	end
+
+	# If nothing is selected let's select something
+	if $workbench.job_combo.current == -1 && jobs_arr.length > 0
+		$workbench.job_combo.current = 0
+	end
 
 	# Update menus
 	$menus.construct_jobs_menu(job_hash)

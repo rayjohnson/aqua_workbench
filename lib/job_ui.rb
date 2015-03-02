@@ -19,14 +19,14 @@ class JobUI
 		end
 		job.delete
 		t.destroy
-		update_job_references
+		update_job_references(nil)
 	end
 
 	def save_job(job, t)
 		job.name = @name_entry.value.strip
-		job.format = @format_entry.value
+		job.format = @format_combo.get
 		job.version = @version_entry.value
-		job.encrypted = @encrypted_entry.value
+		job.encrypted = @encrypted_combo.get
 		job.partner = @partner_entry.value.strip
 		job.project = @project_entry.value.strip
 
@@ -43,7 +43,7 @@ class JobUI
 		end
 
 		t.destroy
-		update_job_references
+		update_job_references(job)
 	end
 
 	def build_query_editors(job)
@@ -85,19 +85,26 @@ class JobUI
 		@name_entry = TkEntry.new(t) {  }
 		@name_entry.insert(0, job.name)
 
-		# Todo: combo?
 		format_label = TkLabel.new(t) {text "Format:"}
-		@format_entry = TkEntry.new(t) {  }
-		@format_entry.insert(0, job.format)
+
+		@format_var = TkVariable.new
+		@format_combo = Tk::Tile::Combobox.new(t, 'textvariable' => @format_var)
+		@format_combo.state = 'readonly'
+		@format_combo.values = ["csv", "zip", "gzip"]
+		@format_combo.set job.format
 
 		version_label = TkLabel.new(t) {text "Version:"}
 		@version_entry = TkEntry.new(t) {  }
 		@version_entry.insert(0, job.version)
 		
 		encrypted_label = TkLabel.new(t) {text "Encrypted:"}
-		@encrypted_entry = TkEntry.new(t) {  }
-		@encrypted_entry.insert(0, job.encrypted)
-		
+
+		@encrypted_var = TkVariable.new
+		@encrypted_combo = Tk::Tile::Combobox.new(t, 'textvariable' => @encrypted_var)
+		@encrypted_combo.state = 'readonly'
+		@encrypted_combo.values = ["none", "pgp"]
+		@encrypted_combo.set job.encrypted
+
 		partner_label = TkLabel.new(t) {text "Partner:"}
 		@partner_entry = TkEntry.new(t) {  }
 		@partner_entry.insert(0, job.partner)
@@ -136,23 +143,23 @@ class JobUI
 		addQuery.command { add_query_editor(nil) }
 
 		name_label.grid :column => 0, :row => 0
-		@name_entry.grid :column => 1, :row => 0, :sticky => 'ew'
+		@name_entry.grid :column => 1, :row => 0, :columnspan => 3, :sticky => 'ew'
 		format_label.grid :column => 0, :row => 1
-		@format_entry.grid :column => 1, :row => 1, :sticky => 'ew'
+		@format_combo.grid :column => 1, :row => 1
+		encrypted_label.grid :column => 2, :row => 1
+		@encrypted_combo.grid :column => 3, :row => 1, :sticky => 'w'
 		version_label.grid :column => 0, :row => 2
-		@version_entry.grid :column => 1, :row => 2, :sticky => 'ew'
-		encrypted_label.grid :column => 0, :row => 3
-		@encrypted_entry.grid :column => 1, :row => 3, :sticky => 'ew'
+		@version_entry.grid :column => 1, :row => 2, :columnspan => 3, :sticky => 'ew'
 		partner_label.grid :column => 0, :row => 4
-		@partner_entry.grid :column => 1, :row => 4, :sticky => 'ew'
+		@partner_entry.grid :column => 1, :row => 4, :columnspan => 3, :sticky => 'ew'
 		project_label.grid :column => 0, :row => 5
-		@project_entry.grid :column => 1, :row => 5, :sticky => 'ew'
+		@project_entry.grid :column => 1, :row => 5, :columnspan => 3, :sticky => 'ew'
 
-		@query_frame.grid :column => 0, :row => 6, :columnspan => 2, :sticky => 'ew'
+		@query_frame.grid :column => 0, :row => 6, :columnspan => 4, :sticky => 'ew'
 
-		f.grid :column => 0, :row => 7, :columnspan => 2, :sticky => 'e'
+		f.grid :column => 0, :row => 7, :columnspan => 4, :sticky => 'e'
 
-		TkGrid.columnconfigure( t, 1, :weight => 1 )
+		TkGrid.columnconfigure( t, 3, :weight => 1 )
 
 		@win = t
 	end

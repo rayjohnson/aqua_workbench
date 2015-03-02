@@ -63,7 +63,7 @@ class ConnectionUI
 
 	def delete_connection(connection, toplevel)
 		connection.delete
-		update_connection_references
+		update_connection_references(nil)
 		toplevel.destroy
 	end
 
@@ -76,7 +76,7 @@ class ConnectionUI
 		connection.environment = @connection_environment.value
 		connection.save
 
-		update_connection_references
+		update_connection_references(connection)
 		toplevel.destroy
 	end
 end
