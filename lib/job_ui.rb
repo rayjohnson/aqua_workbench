@@ -9,6 +9,7 @@ class JobUI
 		job.version = "1.1"
 		job.encrypted = "none"
 		job.format = "csv"
+		job.save_path = "#{Dir.home}/Downloads/"
 
 		return job
 	end
@@ -44,6 +45,13 @@ class JobUI
 
 		t.destroy
 		update_job_references(job)
+	end
+
+	def select_save_dir(job, t)
+		#bdir=Tk.chooseDirectory('initialdir'=>'./')
+		bdir=Tk.chooseDirectory(:parent => t)
+		job.save_path = bdir
+		@folder_label.text bdir
 	end
 
 	def build_query_editors(job)
@@ -117,6 +125,11 @@ class JobUI
 		@query_editors = []
 		build_query_editors(job)
 
+		folder_button = TkButton.new(t) {text 'Folder'}
+		folder_button.command proc{select_save_dir(job, t)}
+		@folder_label = TkLabel.new(t, :anchor => 'w')
+		@folder_label.text job.save_path
+
 		f = TkFrame.new(t)
 		delete = TkButton.new(f) {
 			text "Delete"
@@ -150,10 +163,12 @@ class JobUI
 		@encrypted_combo.grid :column => 3, :row => 1, :sticky => 'w'
 		version_label.grid :column => 0, :row => 2
 		@version_entry.grid :column => 1, :row => 2, :columnspan => 3, :sticky => 'ew'
-		partner_label.grid :column => 0, :row => 4
-		@partner_entry.grid :column => 1, :row => 4, :columnspan => 3, :sticky => 'ew'
-		project_label.grid :column => 0, :row => 5
-		@project_entry.grid :column => 1, :row => 5, :columnspan => 3, :sticky => 'ew'
+		partner_label.grid :column => 0, :row => 3
+		@partner_entry.grid :column => 1, :row => 3, :columnspan => 3, :sticky => 'ew'
+		project_label.grid :column => 0, :row => 4
+		@project_entry.grid :column => 1, :row => 4, :columnspan => 3, :sticky => 'ew'
+		folder_button.grid :column => 0, :row => 5
+		@folder_label.grid :column => 1, :row => 5, :columnspan => 3, :sticky => 'ew'
 
 		@query_frame.grid :column => 0, :row => 6, :columnspan => 4, :sticky => 'ew'
 

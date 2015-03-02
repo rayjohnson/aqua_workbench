@@ -30,7 +30,6 @@ def show_zuora_error_message(errorCode, message)
 end
 
 def run_query(connection, job)
-  puts "hello"
   puts "Job: job.name"
   request = job.to_json(:except=>[:id, :name], :include=>{:queries=>{:except=>[:id, :job_id]}})
   puts "Body: #{request}"
@@ -39,7 +38,6 @@ def run_query(connection, job)
   #username = "rjohnson@yp.com.zdev"
   #password = "1BigFatCat"
   aqua = AQuA.new(connection.username, connection.password)
-  puts "about to do it"
 
   response = aqua.batch_query(request)
   # TODO: look for errors
@@ -59,6 +57,7 @@ def run_query(connection, job)
   result = Result.new
   result.result_id = job_id
   result.name = job.name
+  result.save_path = job.save_path
   connection.add_result(result)
   result.save
 
@@ -90,11 +89,6 @@ def check_results
     r.format = response["format"]
     r.status = response["status"]
     r.save
-
-    jobs_still_running = false
-    if response["status"] == "executing" || response["status"] == "pending"
-      jobs_still_running = true
-    end
      
     if r.batches.length > 0
       # Just update batch results
@@ -112,17 +106,34 @@ def check_results
       end
     end
 
+    # If job just became done - got download all the files
+    if r.status == "completed"
+      # TODO: would be better to do this as each batch completed
+      # TODO: would also be nice to show completion percent of each file on job_ui for the batch
+      Batch.where(:result_id=>r.id).all do |batch|
+        download_query_results(batch, r.save_path)
+      end
+
+    end
+
+    jobs_still_running = false
+    if response["status"] == "executing" || response["status"] == "pending"
+      jobs_still_running = true
+    end
+
     # Now go update UI
     update_results_table
+    result_ui_update_windows
+    
     if jobs_still_running
-      Tk.after(500) {
+      Tk.after(5000) {
         check_results
       }
     end
   end
 end
 
-def download_query_results(batch)
+def download_query_results(batch, save_dir)
   result = Result.where(:id=>batch.result_id).first
   connection = Connection.where(:id=>result.connection_id).first
 
@@ -135,11 +146,11 @@ def download_query_results(batch)
   puts "URL: #{url}"
   uri = URI(url)
 
-  # TODO: option to store in different place than Downloads
-  save_path = "#{Dir.home}/Downloads/#{batch.name}.#{result.format}"
+  # TODO: options for naming file (date stamp, etc)
+  save_path = "#{save_dir}/#{batch.name}.#{result.format}"
   puts "Save here: #{save_path}"
 
-  # TODO: Content type in header?
+  # TODO: Content type in header? - when doing zip and gzip
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = true
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE

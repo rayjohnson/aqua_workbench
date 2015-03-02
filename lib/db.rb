@@ -25,7 +25,7 @@ unless DB.table_exists? :jobs
   	String :encrypted
   	String :partner
   	String :project
-  	# Queries - foreign key thing TODO
+  	String :save_path
   end
 end
 
@@ -53,6 +53,7 @@ unless DB.table_exists? :results
     String :startTime   # TODO make DateTime
     String :status
     String :encrypted
+    String :save_path
 
     foreign_key :connection_id, :connections
   end

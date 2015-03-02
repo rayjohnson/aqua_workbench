@@ -7,7 +7,7 @@ require 'sequel'
 require './lib/db'
 require './lib/connection'
 require './lib/menus'
-require './lib/result'
+require './lib/result_ui'
 require './lib/job_ui'
 require './lib/query_ui'
 require './lib/zuora_aqua'
@@ -99,6 +99,7 @@ class Workbench
 	    sx.grid :column => 0, :row => 4, :columnspan => 5, :sticky => 'ewns'
 
 		TkGrid.columnconfigure( frame, 4, :weight => 1 )
+		TkGrid.rowconfigure( frame, 3, :weight => 1 )
 	end
 
 	def table_click(w, x, y)

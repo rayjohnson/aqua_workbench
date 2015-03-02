@@ -1,9 +1,20 @@
 
+$result_ui_windows = {}
+
+def result_ui_update_windows
+  $result_ui_windows.each do |top_level, result_ui|
+    result_ui.update_result
+  end
+end
+
 class ResultUI
   def initialize(result, root)
     f = TkToplevel.new(root)
     f['title'] = "Results"
+    f.protocol(:WM_DELETE_WINDOW){window_delete}
+    $result_ui_windows[f] = self
     @toplevel = f
+    @result_id = result.id
 
       name_label = TkLabel.new(f) {text "Job Name:"}
       name_value = TkLabel.new(f) {text result.name}
@@ -24,7 +35,7 @@ class ResultUI
       project_value = TkLabel.new(f) {text result.project}
 
       status_label = TkLabel.new(f) {text "Status:"}
-      status_value = TkLabel.new(f) {text result.status}
+      @status_value = TkLabel.new(f) {text result.status}
       # TODO: encrypted?, result_id?
 
       @batch_array  = TkVariable.new_hash
@@ -57,16 +68,12 @@ class ResultUI
         a[row,1] = batch.batchType
         a[row,2] = batch.recordCount
         a[row,3] = batch.status
-        a[row,4] = "Download"
+        a[row,4] = "0%"
         a[row,5] = batch.id
         row = row + 1
       end
       table.variable(@batch_array)
       table.rows = row
-
-      table.bind('Double-Button-1', proc{|w, x, y|
-             table_click(w, x, y)
-             }, '%W %x %y')
 
       name_label.grid :column => 0, :row => 0, :sticky => 'e'
       name_value.grid :column => 1, :row => 0, :sticky => 'w'
@@ -84,11 +91,33 @@ class ResultUI
       project_value.grid :column => 4, :row => 2, :sticky => 'w'
 
       status_label.grid :column => 3, :row => 3, :sticky => 'e'
-      status_value.grid :column => 4, :row => 3, :sticky => 'w'
+      @status_value.grid :column => 4, :row => 3, :sticky => 'w'
 
       table.grid :column => 0, :row => 4, :columnspan => 5, :sticky => 'ewns'
   end
 
+  def update_result
+    result = Result.where(:id => @result_id).first
+    @status_value.text result.status
+
+    # Update each batch as well
+    # TODO: debug - this is not updating the UI.  Need to tell table to refresh or something
+    # TODO: would like to update Download percent as well
+    len = result.batches.length
+    result.batches.each do |batch|
+      for i in 1..len
+        if @batch_array[i,5] == batch.id
+          @batch_array[i,3] = batch.status
+          break
+        end
+      end
+    end
+  end
+
+  def window_delete
+    $result_ui_windows.delete(@toplevel)
+    @toplevel.destroy
+  end
 
   def table_click(w, x, y)
       rc = w.index(TkComm._at(x,y))
