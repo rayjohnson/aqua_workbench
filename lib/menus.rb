@@ -30,6 +30,13 @@ class MenuBar
     menubar = TkMenu.new(win)
     win['menu'] = menubar
 
+    # TODO: special menus
+    #apple = TkSysMenu_Apple.new(menubar)
+    #menubar.add :cascade, :menu => apple
+    #help = TkSysMenu_Help.new(menubar)
+    #menubar.add :cascade, :menu => help
+    # TODO: About menu, Help, App->Quit
+
     @connections_menu = TkMenu.new(menubar)
     @connections_menu.add :command, :label => 'New Connection...', :command => proc{ConnectionUI.new(nil, win)}
 
@@ -42,4 +49,3 @@ class MenuBar
   end
 end
 
-# TODO: About menu, Help, App->Quit

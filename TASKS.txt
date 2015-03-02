@@ -1,0 +1,15 @@
+
+
+create Gemfile
+
+check out releasy
+https://github.com/Spooner/releasy/
+as a way to package up an app
+
+App menu,about dialog, help menu
+improve readme with basic instructions
+
+define version of APP
+way to get app to auto upgrade?
+
+move this to issues DB?
