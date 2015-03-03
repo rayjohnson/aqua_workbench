@@ -9,8 +9,13 @@ class AQuA
   base_uri 'https://apisandbox.zuora.com'
   #format :json
 
-  def initialize(user, pass)
-    self.class.basic_auth user, pass
+  def initialize(connection)
+    self.class.basic_auth connection.username, connection.password
+    if connection.environment == "prod"
+      self.class.base_uri "https://api.zuora.com"
+    else
+      self.class.base_uri "https://apisandbox.zuora.com"
+    end
   end
 
   def batch_query(json_payload)

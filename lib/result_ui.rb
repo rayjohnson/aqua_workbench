@@ -93,7 +93,8 @@ class ResultUI
       status_label.grid :column => 3, :row => 3, :sticky => 'e'
       @status_value.grid :column => 4, :row => 3, :sticky => 'w'
 
-      @table.grid :column => 0, :row => 4, :columnspan => 5, :sticky => 'ewns'
+      @table.grid :column => 0, :row => 4, :columnspan => 6, :sticky => 'ewns'
+      TkGrid.columnconfigure( f, 5, :weight => 1 )
   end
 
   def update_result

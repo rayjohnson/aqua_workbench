@@ -208,6 +208,11 @@ $menus = MenuBar.new($root)
 update_job_references
 update_connection_references
 
+# If we had unfinished jobs we last quit we should query on the status
+Tk.after(5000) {
+  check_results
+}
+
 Tk.mainloop
 
 

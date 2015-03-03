@@ -22,9 +22,10 @@ class ConnectionUI
 		pw_label = TkLabel.new(t) {text "Zuora Password:"}
 		@pw_entry = TkEntry.new(t) {}
 		@pw_entry.insert(0, connection.password)
+		@pw_entry.show '*'
 
 		@connection_environment = TkVariable.new
-		@connection_environment.value = 'sandbox'
+		@connection_environment.value = connection.environment
 		env_label = TkLabel.new(t) {text "Environment:"}
 		env_f = TkFrame.new(t)
 		env_sandbox = TkRadioButton.new(env_f) { text 'Sandbox'; value 'sandbox'; pack(:side => 'top', :anchor => 'w') }

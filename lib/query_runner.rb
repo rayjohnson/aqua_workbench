@@ -37,11 +37,10 @@ def run_query(connection, job)
   # TODO: need way to get credentials
   #username = "rjohnson@yp.com.zdev"
   #password = "1BigFatCat"
-  aqua = AQuA.new(connection.username, connection.password)
+  aqua = AQuA.new(connection)
 
   response = aqua.batch_query(request)
-  # TODO: look for errors
-  puts response
+  puts "Response: #{response}"
   puts "Code: #{response.code}"
   if response.code != 200
     show_bad_request_message(response.code)
@@ -75,7 +74,8 @@ def check_results
     connection = Connection.where(:id=>r.connection_id).first
     puts "USER: #{connection.username}"
 
-    aqua = AQuA.new(connection.username, connection.password)
+    aqua = AQuA.new(connection)
+
     job_status = aqua.query_job_result(r.result_id)
 
     puts "Result #{job_status}"
@@ -125,6 +125,7 @@ def check_results
     update_results_table
     result_ui_update_windows
     
+    puts "Schedule to run in 5 seconds"
     if jobs_still_running
       Tk.after(5000) {
         check_results
