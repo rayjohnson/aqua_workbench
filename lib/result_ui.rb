@@ -39,8 +39,8 @@ class ResultUI
       # TODO: encrypted?, result_id?
 
       @batch_array  = TkVariable.new_hash
-      table = Tk::TkTable.new(f)
-      table.configure(:cols=>5,
+      @table = Tk::TkTable.new(f)
+      @table.configure(:cols=>5,
                         :width=>56, :height=>6,
                         :titlerows=>1,
                         :roworigin=>0, :colorigin=>0,
@@ -72,8 +72,8 @@ class ResultUI
         a[row,5] = batch.id
         row = row + 1
       end
-      table.variable(@batch_array)
-      table.rows = row
+      @table.variable(@batch_array)
+      @table.rows = row
 
       name_label.grid :column => 0, :row => 0, :sticky => 'e'
       name_value.grid :column => 1, :row => 0, :sticky => 'w'
@@ -93,7 +93,7 @@ class ResultUI
       status_label.grid :column => 3, :row => 3, :sticky => 'e'
       @status_value.grid :column => 4, :row => 3, :sticky => 'w'
 
-      table.grid :column => 0, :row => 4, :columnspan => 5, :sticky => 'ewns'
+      @table.grid :column => 0, :row => 4, :columnspan => 5, :sticky => 'ewns'
   end
 
   def update_result
@@ -101,17 +101,17 @@ class ResultUI
     @status_value.text result.status
 
     # Update each batch as well
-    # TODO: debug - this is not updating the UI.  Need to tell table to refresh or something
     # TODO: would like to update Download percent as well
     len = result.batches.length
     result.batches.each do |batch|
       for i in 1..len
-        if @batch_array[i,5] == batch.id
+        if @batch_array[i,5] == batch.id.to_s
           @batch_array[i,3] = batch.status
           break
         end
       end
     end
+    @table.variable(@batch_array)
   end
 
   def window_delete

@@ -45,7 +45,6 @@ class Workbench
 		@job_var = TkVariable.new
 		@job_combo = Tk::Tile::Combobox.new(frame, 'textvariable' => @job_var)
 		@job_combo.state = 'readonly'
-		#job_combo.set(query.type)
 
 		run_button = TkButton.new(frame) { text "Run" }
 		run_button.command {run_job}
@@ -53,9 +52,9 @@ class Workbench
 		refresh_frame = TkFrame.new(frame)
 		result_label =TkLabel.new(refresh_frame) {text "Results:" }
 		result_label.pack(:side => 'left')
-    	refresh_button = TkButton.new(refresh_frame) { text "Refresh" }
-    	refresh_button.command {check_results}
-		refresh_button.pack(:side => 'right')
+    	#refresh_button = TkButton.new(refresh_frame) { text "Refresh" }
+    	#refresh_button.command {check_results}
+		#refresh_button.pack(:side => 'right')
 
 #TODO: make hyper link - font with underline perhaps, code for double click?
 # pathName tag configure -font

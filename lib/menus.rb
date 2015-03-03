@@ -31,8 +31,10 @@ class MenuBar
     win['menu'] = menubar
 
     # TODO: special menus
-    #apple = TkSysMenu_Apple.new(menubar)
-    #menubar.add :cascade, :menu => apple
+    # DEBUG - this doesn't replace the ruby menu like I was hoping it would...
+    apple = TkSysMenu_Apple.new(menubar)
+    apple.add :command, :label => "About...", :command => proc{aboutDialog}
+    menubar.add :cascade, :menu => apple, :label => "AQuA workbench"
     #help = TkSysMenu_Help.new(menubar)
     #menubar.add :cascade, :menu => help
     # TODO: About menu, Help, App->Quit
@@ -46,6 +48,10 @@ class MenuBar
     @jobs_menu.add :command, :label => 'New Job...', :command => proc{JobUI.new(nil, win)}
 
     menubar.add :cascade, :menu => @jobs_menu, :label => 'Jobs'
+  end
+
+  def aboutDialog
+    puts "About me!"
   end
 end
 
