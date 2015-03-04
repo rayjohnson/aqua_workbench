@@ -12,11 +12,9 @@ class QueryUI
 	end
 
 	def delete_query
-		# TODO: this deletes from DB - so you can't cancel deletes you make.
-		# Ideally this should lose the UI but not delete from the DB until cancel is hit
-		puts "Query id = #{@query.id}"
+		# Defer the actual delete until save - so it still exists if we cancel
 		if !@query.id.nil?
-			@query.delete
+			@job_ui.queries_to_delete << @query
 		end
 
 		# Delete the query frame
@@ -27,7 +25,7 @@ class QueryUI
 		@job_ui.query_editors = @job_ui.query_editors - [self]
 	end
 
-	def initialize(job_ui, query, f)
+	def initialize(job_ui, query, query_frame)
 			if query.nil?
 				query = Query.new
 				query.name = "New query"
@@ -38,8 +36,11 @@ class QueryUI
 			@query = query
 			@job_ui = job_ui
 
+			# All widgets for the query fit into this frame
+			# we add the frame to the grid without specifying row
+			f = TkFrame.new(query_frame)
+			f.grid :column => 0, :sticky => 'ew'
 			@my_frame = f
-
 
 			name_label = TkLabel.new(f) {text "Query Name:"}
 			@name_var = TkVariable.new

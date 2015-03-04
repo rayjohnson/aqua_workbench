@@ -37,6 +37,12 @@ class JobUI
 		if job.project == ""
 			job.project = nil
 		end
+
+		# Delete any queries marked for deletion
+		@queries_to_delete.each do |q|
+			q.delete
+		end
+
 		job.save
 
 		@query_editors.each do |qe|
@@ -48,7 +54,6 @@ class JobUI
 	end
 
 	def select_save_dir(job, t)
-		#bdir=Tk.chooseDirectory('initialdir'=>'./')
 		bdir=Tk.chooseDirectory(:parent => t)
 		job.save_path = bdir
 		@folder_label.text bdir
@@ -56,12 +61,14 @@ class JobUI
 
 	def build_query_editors(job)
 		@canvas = TkCanvas.new(@query_frame) {borderwidth 0}
-
 		@scrollbar = @canvas.yscrollbar(TkScrollbar.new(@query_frame))
 
 		@canvas.grid :column => 0, :sticky => 'nsew'
 		@scrollbar.grid :column => 1, :row => 0, :sticky => 'ns'
 
+		# Our query widgets will be placed on a frame within a canvas
+		# That way we can scroll the frame and have many more queries
+		# than would otherwise fit on the screen
 		@internal_query_frame = TkFrame.new(@canvas)
 
 		@cwin = TkcWindow.new(@canvas, 4, 4)
@@ -90,25 +97,24 @@ class JobUI
 	end
 
 	def onWidthConfigure
-		#puts "adjust width: #{@query_frame.winfo_width}"
+		# This forces the frame inside the canvas to resize when the canvas resizes
 		@cwin.width = @query_frame.winfo_width - @scrollbar.winfo_width
 	end
 
 
 	def onConfigure
-		#puts "canvas configure: #{@canvas.bbox('all')}"
+		# If the frame inside the canvas grows or shrinks we need to adjust the scrollable area
 		@canvas.scrollregion(@canvas.bbox('all'))
 	end
 
+	# Add a new query UI - query may be nil indicating a new query not yet saved
+	# to the DB
 	def add_query_editor(query)
-		f = TkFrame.new(@internal_query_frame)
-
-		f.grid :column => 0, :sticky => 'ew'
-
-		@query_editors << QueryUI.new(self, query, f)
+		@query_editors << QueryUI.new(self, query, @internal_query_frame)
 	end
 
 	attr_accessor :query_editors
+	attr_accessor :queries_to_delete
 
 	def initialize(job, parent)
 
@@ -153,6 +159,7 @@ class JobUI
 
 		@query_frame = TkFrame.new(t)
 		@query_editors = []
+		@queries_to_delete = []
 		build_query_editors(job)
 
 		folder_button = TkButton.new(t) {text 'Folder'}
