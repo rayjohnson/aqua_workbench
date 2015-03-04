@@ -67,6 +67,42 @@ class QueryUI
 			delete_button.grid :column => 4, :row => 0
 			@query_text.grid :column => 0, :row => 1, :columnspan => 5, :sticky => 'ew'
 
-			TkGrid.columnconfigure( f, 4, :weight => 1 )
+			TkGrid.columnconfigure( f, 1, :weight => 1 )
 	end
 end
+
+# Python code that puts widgets in a canvas
+# class Example(tk.Frame):
+#     def __init__(self, root):
+
+#         tk.Frame.__init__(self, root)
+#         self.canvas = tk.Canvas(root, borderwidth=0, background="#ffffff")
+#         self.frame = tk.Frame(self.canvas, background="#ffffff")
+#         self.vsb = tk.Scrollbar(root, orient="vertical", command=self.canvas.yview)
+#         self.canvas.configure(yscrollcommand=self.vsb.set)
+
+#         self.vsb.pack(side="right", fill="y")
+#         self.canvas.pack(side="left", fill="both", expand=True)
+#         self.canvas.create_window((4,4), window=self.frame, anchor="nw", 
+#                                   tags="self.frame")
+
+#         self.frame.bind("<Configure>", self.OnFrameConfigure)
+
+#         self.populate()
+
+#     def populate(self):
+#         '''Put in some fake data'''
+#         for row in range(100):
+#             tk.Label(self.frame, text="%s" % row, width=3, borderwidth="1", 
+#                      relief="solid").grid(row=row, column=0)
+#             t="this is the second colum for row %s" %row
+#             tk.Label(self.frame, text=t).grid(row=row, column=1)
+
+#     def OnFrameConfigure(self, event):
+#         '''Reset the scroll region to encompass the inner frame'''
+#         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+# if __name__ == "__main__":
+#     root=tk.Tk()
+#     Example(root).pack(side="top", fill="both", expand=True)
+#     root.mainloop()

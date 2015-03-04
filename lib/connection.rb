@@ -59,7 +59,14 @@ class ConnectionUI
 		cancel.grid :column => 1, :row => 4
 		delete.grid :column => 2, :row => 4
 
-		TkGrid.columnconfigure( t, 1, :weight => 1 )
+		TkGrid.columnconfigure( t, 0, :pad => 10 )
+		TkGrid.columnconfigure( t, 1, :pad => 10, :weight => 1 )
+
+		TkGrid.rowconfigure( t, 0, :pad => 10 )
+		TkGrid.rowconfigure( t, 1, :pad => 10 )
+		TkGrid.rowconfigure( t, 2, :pad => 10 )
+		TkGrid.rowconfigure( t, 3, :pad => 10 )
+		TkGrid.rowconfigure( t, 4, :pad => 10 )
 	end
 
 	def delete_connection(connection, toplevel)
