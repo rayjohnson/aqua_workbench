@@ -171,6 +171,10 @@ def update_connection_references(selected = nil)
 	if $workbench.connection_combo.current == -1 && connection_arr.length > 0
 		$workbench.connection_combo.current = 0
 	end
+	
+	if connection_arr.length == 0
+	    $workbench.connection_combo.set ""
+	end
 
 	# Update menus
 	$menus.construct_connections_menu(connection_hash)
@@ -194,6 +198,10 @@ def update_job_references(selected = nil)
 	# If nothing is selected let's select something
 	if $workbench.job_combo.current == -1 && jobs_arr.length > 0
 		$workbench.job_combo.current = 0
+	end
+
+	if jobs_arr.length == 0
+	    $workbench.job_combo.set ""
 	end
 
 	# Update menus

@@ -14,7 +14,7 @@ class MenuBar
 
   def construct_jobs_menu(job_hash)
     win = @main_win
-    @jobs_menu.delete(2, 'end')
+    @jobs_menu.delete(4, 'end')
 
     if job_hash.length > 0
       @jobs_menu.add :separator
@@ -46,7 +46,9 @@ class MenuBar
 
     @jobs_menu = TkMenu.new(menubar)
     @jobs_menu.add :command, :label => 'New Job...', :command => proc{JobUI.new(nil, win)}
+    @jobs_menu.add :command, :label => 'Import...', :command => proc{import_jobs}
     @jobs_menu.add :command, :label => 'Export...', :command => proc{export_jobs}
+    @jobs_menu.add :command, :label => 'Clear all jobs', :command => proc{clear_jobs}
 
     menubar.add :cascade, :menu => @jobs_menu, :label => 'Jobs'
   end
@@ -55,38 +57,63 @@ class MenuBar
     puts "About me!"
   end
 
-  def export_jobs
-    jobs = Job.all
-    jobs.each do |job|
-      puts "#{job.queries.first.name}"
+  def clear_jobs
+    Job.all.each do |job|
+      job.queries.each do |query|
+        query.delete
+      end
+      job.delete
     end
-    #json = jobs.to_yaml(:Indent => 4, :UseHeader => true, :UseVersion => true)
-    json = jobs.to_json(:except=>[:id, :name], :include=>{:queries=>{:except=>[:id, :job_id]}})
-    puts "hello"
-    puts "JSON: #{json}"
-    data = JSON.parse(json)
-    puts "world"
-    yml = YAML::dump(data)
-    puts "what?"
+    update_job_references
+  end
+
+  def import_jobs
+    ftypes = [["Yaml files", '*.yml']]
+    file_path = Tk.getOpenFile('filetypes' => ftypes)
+    if file_path.empty?
+      return
+    end
+    data = YAML.load_file(file_path)
+    data['jobs'].each do |job_data|
+      q_arr = job_data['queries']
+      job = Job.new(job_data.tap {|hs| hs.delete('queries')})
+      job.save
+      q_arr.each do |query_data|
+        query = Query.new(query_data)
+        job.add_query(query)
+        query.save
+      end
+    end
+    update_job_references
+  end
+
+  def export_jobs
+    fname = Tk.getSaveFile('initialdir' => "#{Dir.home}/Downloads",
+      'initialfile' => "job_export",
+      'defaultextension' => ".yml"
+    )
+    if fname.empty?
+      return
+    end
+
+    jobs = Job.all
+    
+    data=[]
+    jobs.each do |job|
+      json = job.to_json(:except=>:id, :include=>{:queries=>{:except=>[:id, :job_id]}})
+      data << JSON.parse(json)
+    end
+
+    yml = YAML::dump({"jobs" => data})
     #request = job.to_json(:except=>[:id, :name], :include=>{:queries=>{:except=>[:id, :job_id]}})
 
-    puts "#{yml}"
-    puts "ok"
-ftypes = [
-["Text files", '*txt'],
-["Midi files", '*mid'],
-["Backup files", '*~'],
-["All files", '*']
-]
 
-      fname = Tk.getSaveFile('filetypes' => ftypes,'parent'=> $root,
-        'initialdir' => "#{Dir.home}/Downloads",
-        'initialfile' => "job_export",
-        'defaultextension' => ".yaml"
-      )
 
-      puts "file name: #{fname}"
+      #fname = Tk.getSaveFile('filetypes' => ftypes,'parent'=> $root,
 
+
+    puts "file name: #{fname}"
+    File.write(fname, yml)
   end
 end
 

@@ -138,7 +138,6 @@ def download_query_results(batch, save_dir)
   result = Result.where(:id=>batch.result_id).first
   connection = Connection.where(:id=>result.connection_id).first
 
-  #get_csv_file(batch.fileId)
   if connection.environment == "prod"
     url = "https://www.zuora.com/apps/api/file/#{batch.fileId}"
   else
@@ -149,7 +148,6 @@ def download_query_results(batch, save_dir)
 
   # TODO: options for naming file (date stamp, etc)
   save_path = "#{save_dir}/#{batch.name}.#{result.format}"
-  puts "Save here: #{save_path}"
 
   # TODO: Content type in header? - when doing zip and gzip
   http = Net::HTTP.new(uri.host, uri.port)
