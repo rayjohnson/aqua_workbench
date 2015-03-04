@@ -54,6 +54,7 @@ class MenuBar
   end
 
   def aboutDialog
+    # TODO: create about window
     puts "About me!"
   end
 
@@ -105,14 +106,6 @@ class MenuBar
     end
 
     yml = YAML::dump({"jobs" => data})
-    #request = job.to_json(:except=>[:id, :name], :include=>{:queries=>{:except=>[:id, :job_id]}})
-
-
-
-      #fname = Tk.getSaveFile('filetypes' => ftypes,'parent'=> $root,
-
-
-    puts "file name: #{fname}"
     File.write(fname, yml)
   end
 end

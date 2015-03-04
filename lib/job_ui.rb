@@ -55,6 +55,22 @@ class JobUI
 	end
 
 	def build_query_editors(job)
+		@canvas = TkCanvas.new(@query_frame) {borderwidth 0}
+
+		@scrollbar = @canvas.yscrollbar(TkScrollbar.new(@query_frame))
+
+		@canvas.grid :column => 0, :sticky => 'nsew'
+		@scrollbar.grid :column => 1, :row => 0, :sticky => 'ns'
+
+		@internal_query_frame = TkFrame.new(@canvas)
+
+		@cwin = TkcWindow.new(@canvas, 4, 4)
+		@cwin.anchor = 'nw'
+		@cwin.window(@internal_query_frame)
+
+		@internal_query_frame.bind( "Configure", proc {onConfigure})
+		@query_frame.bind( "Configure", proc {onWidthConfigure})
+
 		query_editors = []
 
 		if job.queries.length == 0
@@ -67,14 +83,28 @@ class JobUI
 		end
 		
 		TkGrid.columnconfigure( @query_frame, 0, :weight => 1 )
+		TkGrid.rowconfigure( @query_frame, 0, :weight => 1 )
+		TkGrid.columnconfigure( @internal_query_frame, 0, :weight => 1 )
 
 		return query_editors
 	end
 
+	def onWidthConfigure
+		#puts "adjust width: #{@query_frame.winfo_width}"
+		@cwin.width = @query_frame.winfo_width - @scrollbar.winfo_width
+	end
+
+
+	def onConfigure
+		#puts "canvas configure: #{@canvas.bbox('all')}"
+		@canvas.scrollregion(@canvas.bbox('all'))
+	end
+
 	def add_query_editor(query)
-		f = TkFrame.new(@query_frame)
+		f = TkFrame.new(@internal_query_frame)
 
 		f.grid :column => 0, :sticky => 'ew'
+
 		@query_editors << QueryUI.new(self, query, f)
 	end
 
@@ -170,11 +200,12 @@ class JobUI
 		folder_button.grid :column => 0, :row => 5
 		@folder_label.grid :column => 1, :row => 5, :columnspan => 3, :sticky => 'ew'
 
-		@query_frame.grid :column => 0, :row => 6, :columnspan => 4, :sticky => 'ew'
+		@query_frame.grid :column => 0, :row => 6, :columnspan => 4, :sticky => 'nsew'
 
 		f.grid :column => 0, :row => 7, :columnspan => 4, :sticky => 'e'
 
 		TkGrid.columnconfigure( t, 3, :weight => 1 )
+		TkGrid.rowconfigure( t, 6, :weight => 1 )
 
 		@win = t
 	end
