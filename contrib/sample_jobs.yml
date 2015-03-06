@@ -1,0 +1,115 @@
+---
+jobs:
+- name: Invoice Template Count
+  format: csv
+  version: '1.1'
+  encrypted: none
+  partner: 
+  project: 
+  save_path: /Users/rjohnson/Downloads/
+  queries:
+  - name: Template
+    type: zoqlexport
+    query: select InvoiceTemplateId, count(account.id) from Account group by InvoiceTemplateId
+    apiVersion: '64.0'
+- name: Db Dump
+  format: csv
+  version: '1.1'
+  encrypted: none
+  partner: 
+  project: 
+  save_path: /Users/rjohnson/data
+  queries:
+  - name: Accounts
+    type: zoql
+    query: select AccountNumber, AdditionalEmailAddresses, AllowInvoiceEdit, AutoPay,
+      Balance, Batch, BcdSettingOption, BillCycleDay, BillToId, CommunicationProfileId,
+      CreatedById, CreatedDate, CreditBalance, CrmId, Currency, CustomerServiceRepName,
+      DefaultPaymentMethodId, InvoiceDeliveryPrefsEmail, InvoiceDeliveryPrefsPrint,
+      InvoiceTemplateId, LastInvoiceDate, Name, Notes, PaymentGateway, PaymentTerm,
+      PurchaseOrderNumber, SalesRepName, SoldToId, Status, TaxExemptCertificateID,
+      TaxExemptCertificateType, TaxExemptDescription, TaxExemptEffectiveDate, TaxExemptExpirationDate,
+      TaxExemptIssuingJurisdiction, TaxExemptStatus, TotalInvoiceBalance, UpdatedById,
+      UpdatedDate, AccountType__c, BusinessEntity__c, CustomerID__c, Office__c, RevRecStatus__c
+      from Account
+    apiVersion: '64.0'
+  - name: Contacts
+    type: zoql
+    query: select AccountId, Address1, Address2, City, Country, County, CreatedById,
+      CreatedDate, Description, Fax, FirstName, HomePhone, LastName, MobilePhone,
+      NickName, OtherPhone, OtherPhoneType, PersonalEmail, PostalCode, State, TaxRegion,
+      UpdatedById, UpdatedDate, WorkEmail, WorkPhone from Contact
+    apiVersion: '64.0'
+- name: Revenue Tables
+  format: csv
+  version: '1.1'
+  encrypted: none
+  partner: 
+  project: 
+  save_path: /Users/rjohnson/dev/aqua_workbench/tests
+  queries:
+  - name: RevenueChargeSummaryItem
+    type: zoqlexport
+    query: select RevenueChargeSummaryItem.Amount,RevenueChargeSummaryItem.UpdatedDate,RevenueChargeSummaryItem.CreatedById,RevenueChargeSummaryItem.CreatedDate,RevenueChargeSummaryItem.UpdatedById,RevenueChargeSummaryItem.Id,RevenueChargeSummaryItem.Currency
+      from RevenueChargeSummaryItem
+    apiVersion: '64.0'
+  - name: RevenueChargeSummary
+    type: zoqlexport
+    query: select RevenueChargeSummary.Description,RevenueChargeSummary.UpdatedDate,RevenueChargeSummary.Number,RevenueChargeSummary.CreatedById,RevenueChargeSummary.CreatedDate,RevenueChargeSummary.UpdatedById,RevenueChargeSummary.Id,RevenueChargeSummary.Currency
+      from RevenueChargeSummaryItem
+    apiVersion: '64.0'
+  - name: RevenueScheduleItem
+    type: zoqlexport
+    query: select RevenueScheduleItem.Amount,RevenueScheduleItem.UpdatedDate,RevenueScheduleItem.CreatedById,RevenueScheduleItem.CreatedDate,RevenueScheduleItem.UpdatedById,RevenueScheduleItem.Id,RevenueScheduleItem.Currency
+      from RevenueScheduleItem
+    apiVersion: '64.0'
+  - name: RevenueSchedule
+    type: zoqlexport
+    query: select RevenueSchedule.Amount,RevenueSchedule.Description,RevenueSchedule.TransactionDate,RevenueSchedule.Number,RevenueSchedule.FinanceTransactionType,RevenueSchedule.Rule,RevenueSchedule.BillingTransactionId,RevenueSchedule.RevenueScheduleDate,RevenueSchedule.RecognitionPeriodStart,RevenueSchedule.UpdatedDate,RevenueSchedule.CreatedById,RevenueSchedule.CreatedDate,RevenueSchedule.UpdatedById,RevenueSchedule.TransactionNumber,RevenueSchedule.Id,RevenueSchedule.RecognitionPeriodEnd,RevenueSchedule.Currency,RevenueSchedule.ReferenceId,RevenueSchedule.UndistributedAmount
+      from RevenueScheduleItem
+    apiVersion: '64.0'
+  - name: RecognizedRevenueAccountingCode
+    type: zoqlexport
+    query: select RecognizedRevenueAccountingCode.Category,RecognizedRevenueAccountingCode.Createdbyid,RecognizedRevenueAccountingCode.Createddate,RecognizedRevenueAccountingCode.Glaccountname,RecognizedRevenueAccountingCode.Glaccountnumber,RecognizedRevenueAccountingCode.Id,RecognizedRevenueAccountingCode.Name,RecognizedRevenueAccountingCode.Notes,RecognizedRevenueAccountingCode.Status,RecognizedRevenueAccountingCode.Type,RecognizedRevenueAccountingCode.Updatedbyid,RecognizedRevenueAccountingCode.Updateddate
+      from RevenueScheduleItem
+    apiVersion: '64.0'
+  - name: DeferredRevenueAccountingCode
+    type: zoqlexport
+    query: select DeferredRevenueAccountingCode.Category,DeferredRevenueAccountingCode.Createdbyid,DeferredRevenueAccountingCode.Createddate,DeferredRevenueAccountingCode.Glaccountname,DeferredRevenueAccountingCode.Glaccountnumber,DeferredRevenueAccountingCode.Id,DeferredRevenueAccountingCode.Name,DeferredRevenueAccountingCode.Notes,DeferredRevenueAccountingCode.Status,DeferredRevenueAccountingCode.Type,DeferredRevenueAccountingCode.Updatedbyid,DeferredRevenueAccountingCode.Updateddate
+      from RevenueScheduleItem
+    apiVersion: '64.0'
+  - name: RevenueScheduleItemInvoiceItem
+    type: zoqlexport
+    query: select RevenueScheduleItemInvoiceItem.Amount,RevenueScheduleItemInvoiceItem.UpdatedDate,RevenueScheduleItemInvoiceItem.CreatedById,RevenueScheduleItemInvoiceItem.CreatedDate,RevenueScheduleItemInvoiceItem.UpdatedById,RevenueScheduleItemInvoiceItem.Id,RevenueScheduleItemInvoiceItem.Currency
+      from RevenueScheduleItemInvoiceItem
+    apiVersion: '64.0'
+  - name: RevenueScheduleInvoiceItem
+    type: zoqlexport
+    query: select RevenueScheduleInvoiceItem.Amount,RevenueScheduleInvoiceItem.Description,RevenueScheduleInvoiceItem.TransactionDate,RevenueScheduleInvoiceItem.Number,RevenueScheduleInvoiceItem.FinanceTransactionType,RevenueScheduleInvoiceItem.Rule,RevenueScheduleInvoiceItem.RevenueScheduleDate,RevenueScheduleInvoiceItem.RecognitionPeriodStart,RevenueScheduleInvoiceItem.UpdatedDate,RevenueScheduleInvoiceItem.CreatedById,RevenueScheduleInvoiceItem.CreatedDate,RevenueScheduleInvoiceItem.UpdatedById,RevenueScheduleInvoiceItem.TransactionNumber,RevenueScheduleInvoiceItem.Id,RevenueScheduleInvoiceItem.RecognitionPeriodEnd,RevenueScheduleInvoiceItem.Currency,RevenueScheduleInvoiceItem.ReferenceId,RevenueScheduleInvoiceItem.UndistributedAmount
+      from RevenueScheduleItemInvoiceItem
+    apiVersion: '64.0'
+  - name: RevSchedItemInvoiceItemAdjust
+    type: zoqlexport
+    query: select RevenueScheduleItemInvoiceItemAdjustment.Amount,RevenueScheduleItemInvoiceItemAdjustment.UpdatedDate,RevenueScheduleItemInvoiceItemAdjustment.CreatedById,RevenueScheduleItemInvoiceItemAdjustment.CreatedDate,RevenueScheduleItemInvoiceItemAdjustment.UpdatedById,RevenueScheduleItemInvoiceItemAdjustment.Id,RevenueScheduleItemInvoiceItemAdjustment.Currency
+      from RevenueScheduleItemInvoiceItemAdjustment
+    apiVersion: '64.0'
+  - name: RevSchedInvoiceItemAdjust
+    type: zoqlexport
+    query: select RevenueScheduleInvoiceItemAdjustment.Amount,RevenueScheduleInvoiceItemAdjustment.Description,RevenueScheduleInvoiceItemAdjustment.TransactionDate,RevenueScheduleInvoiceItemAdjustment.Number,RevenueScheduleInvoiceItemAdjustment.FinanceTransactionType,RevenueScheduleInvoiceItemAdjustment.Rule,RevenueScheduleInvoiceItemAdjustment.RevenueScheduleDate,RevenueScheduleInvoiceItemAdjustment.RecognitionPeriodStart,RevenueScheduleInvoiceItemAdjustment.UpdatedDate,RevenueScheduleInvoiceItemAdjustment.CreatedById,RevenueScheduleInvoiceItemAdjustment.CreatedDate,RevenueScheduleInvoiceItemAdjustment.UpdatedById,RevenueScheduleInvoiceItemAdjustment.TransactionNumber,RevenueScheduleInvoiceItemAdjustment.Id,RevenueScheduleInvoiceItemAdjustment.RecognitionPeriodEnd,RevenueScheduleInvoiceItemAdjustment.Currency,RevenueScheduleInvoiceItemAdjustment.ReferenceId,RevenueScheduleInvoiceItemAdjustment.UndistributedAmount
+      from RevenueScheduleItemInvoiceItemAdjustment
+    apiVersion: '64.0'
+  - name: RevenueEventItem
+    type: zoqlexport
+    query: select RevenueEventItem.Amount,RevenueEventItem.UpdatedDate,RevenueEventItem.CreatedById,RevenueEventItem.CreatedDate,RevenueEventItem.UpdatedById,RevenueEventItem.Id,RevenueEventItem.Currency
+      from RevenueEventItem
+    apiVersion: '64.0'
+  - name: RevenueEvent
+    type: zoqlexport
+    query: select RevenueEvent.RecognitionStart,RevenueEvent.Description,RevenueEvent.RecognitionEnd,RevenueEvent.UpdatedDate,RevenueEvent.Number,RevenueEvent.CreatedById,RevenueEvent.CreatedDate,RevenueEvent.UpdatedById,RevenueEvent.Id
+      from RevenueEventItem
+    apiVersion: '64.0'
+  - name: RevenueEventType
+    type: zoqlexport
+    query: select RevenueEventType.Name,RevenueEventType.Active,RevenueEventType.SystemId,RevenueEventType.UpdatedDate,RevenueEventType.CreatedById,RevenueEventType.CreatedDate,RevenueEventType.UpdatedById,RevenueEventType.Id
+      from RevenueEventItem
+    apiVersion: '64.0'
