@@ -1,6 +1,24 @@
 
 require 'json'
 
+# monkey patch stolen from rails
+class String
+  def truncate(truncate_at, options = {})
+    return dup unless length > truncate_at
+
+    options[:omission] ||= '...'
+    length_with_room_for_omission = truncate_at - options[:omission].length
+    stop = \
+      if options[:separator]
+        rindex(options[:separator], length_with_room_for_omission) ||      length_with_room_for_omission
+      else
+        length_with_room_for_omission
+      end
+
+     "#{self[0...stop]}#{options[:omission]}"
+  end
+end
+
 def show_bad_request_message(code)
   if code == 401
     # TODO: is there more control we can have on UI on Mac (not show feather?)
@@ -20,12 +38,21 @@ def show_bad_request_message(code)
   end
 end
 
-def show_zuora_error_message(errorCode, message)
+def show_zuora_error_message(result_hash)
+    message = ""
+    result_hash.each do |key, value|
+      puts "#{key}: #{value}"
+      message << "#{key}: #{value.to_s.truncate(600, separator: /\s/)}\r\n"
+    end
+    puts message
+    # TODO: Zuora puts entire stack dumps in errors making it rather nasty to show user
+    # should perhaps truncate or something...
+    # TODO: the newline does not help either.  Maybe need custom dialog for this...
     msgBox = Tk.messageBox(
       'type'    => "ok",  
-      'icon'    => "info", 
+      'icon'    => "error", 
       'title'   => "Zuora Error",
-      'message' => "#{message} (errorCode: #{errorCode})"
+      'detail' => message
     )
 end
 
@@ -48,7 +75,7 @@ def run_query(connection, job)
   end
   job_id = response.parsed_response["id"]
   if job_id.nil?
-    show_zuora_error_message(response.parsed_response["errorCode"], response.parsed_response["message"])
+    show_zuora_error_message(response.parsed_response)
     return
   end
 

@@ -27,6 +27,18 @@ class Workbench
 		run_query(connection, job)
 	end
 
+  def clear_results
+    Result.all.each do |result|
+      if result.status == "completed"
+        result.batches.each do |batch|
+          batch.delete
+        end
+        result.delete
+      end
+    end
+    update_results_table
+  end
+
   	attr_reader :connection_combo
   	attr_reader :job_combo
     attr_accessor :connection_var
@@ -52,9 +64,10 @@ class Workbench
 		refresh_frame = TkFrame.new(frame)
 		result_label =TkLabel.new(refresh_frame) {text "Results:" }
 		result_label.pack(:side => 'left')
-    	#refresh_button = TkButton.new(refresh_frame) { text "Refresh" }
-    	#refresh_button.command {check_results}
-		#refresh_button.pack(:side => 'right')
+    
+    clear_button = TkButton.new(refresh_frame) { text "Clear Results" }
+    clear_button.command {clear_results}
+		clear_button.pack(:side => 'right')
 
 #TODO: make hyper link - font with underline perhaps, code for double click?
 # pathName tag configure -font
@@ -120,9 +133,8 @@ end
 
 def update_results_table
 	results = Result.all
-	ary = @results_array
+	ary = TkVariable.new_hash
 
-	puts "Results: #{results.length}"
 	rows = results.length + 1
 	cols = 5
 
@@ -148,8 +160,9 @@ def update_results_table
 	  rows = 6
 	end
 
-	# TODO: should I sent numb of columns?
-	#@table
+  @results_array = ary
+  @table.variable(@results_array)
+  @table.rows = rows
 end
 
 def update_connection_references(selected = nil)

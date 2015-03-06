@@ -46,6 +46,7 @@ class QueryUI
 			@name_var = TkVariable.new
 			@name_var.value = query.name
 			name_entry = TkEntry.new(f, 'textvariable' => @name_var)
+			# TODO: need to make a max of 32 chares
 
 			type_label = TkLabel.new(f) {text "Type:"}
 			@type_var = TkVariable.new
